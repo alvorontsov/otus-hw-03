@@ -1,4 +1,7 @@
 # otus-hw-03
 HW3 OOP
 Using python 2
-Tests are coming
+
+## Testing:
+
+source scripts/run_tests.sh
