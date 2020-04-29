@@ -1,7 +1,7 @@
 import unittest
 
-from redis import ConnectionError
-from unittest.mock import patch, MagicMock
+from redis.exceptions import ConnectionError
+from mock import patch, MagicMock
 import fakeredis
 
 import store
@@ -10,20 +10,12 @@ import store
 class TestStore(unittest.TestCase):
 
     @patch("redis.StrictRedis", fakeredis.FakeStrictRedis)
-    def test_get_raises_on_connection_error(self):
-        redis_storage = store.RedisStorage()
-        redis_storage.db.connected = False
-        storage = store.Storage(redis_storage)
-        with self.assertRaises(ConnectionError):
-            storage.get("key")
-
-    @patch("redis.StrictRedis", fakeredis.FakeStrictRedis)
-    def test_not_raises_on_connection_error(self):
+    def test_cache_get_set(self):
         redis_storage = store.RedisStorage()
         redis_storage.db.connected = False
         storage = store.Storage(redis_storage)
         self.assertEqual(storage.cache_get("key"), None)
-        self.assertEqual(storage.cache_set("key", "value"), None)
+        self.assertEqual(storage.cache_set("key", "value"), True)
 
     @patch("redis.StrictRedis", fakeredis.FakeStrictRedis)
     def test_retry_on_connection_error(self):

@@ -10,7 +10,7 @@ import hashlib
 import uuid
 from optparse import OptionParser
 from abc import abstractmethod, ABCMeta
-from store import RedisStorage
+from store import RedisStorage, Storage
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 
 SALT = "Otus"
@@ -312,7 +312,7 @@ class MainHTTPHandler(BaseHTTPRequestHandler):
     router = {
         "method": method_handler
     }
-    store = RedisStorage()
+    store = Storage(RedisStorage())
 
     def get_request_id(self, headers):
         return headers.get('HTTP_X_REQUEST_ID', uuid.uuid4().hex)
