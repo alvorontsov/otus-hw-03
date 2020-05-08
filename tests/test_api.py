@@ -5,7 +5,7 @@ import api
 from utils import cases
 
 
-class TestSuite(unittest.TestCase):
+class BaseAPITestSuite(unittest.TestCase):
     def setUp(self):
         self.context = {}
         self.headers = {}
@@ -21,18 +21,11 @@ class TestSuite(unittest.TestCase):
             msg = request.get("account", "") + request.get("login", "") + api.SALT
             request["token"] = hashlib.sha512(msg).hexdigest()
 
+
+class TestRequestSuite(BaseAPITestSuite):
     def test_empty_request(self):
         _, code = self.get_response({})
         self.assertEqual(api.INVALID_REQUEST, code)
-
-    @cases([
-        {"account": "horns&hoofs", "login": "h&f", "method": "online_score", "token": "", "arguments": {}},
-        {"account": "horns&hoofs", "login": "h&f", "method": "online_score", "token": "sdd", "arguments": {}},
-        {"account": "horns&hoofs", "login": "admin", "method": "online_score", "token": "", "arguments": {}},
-    ])
-    def test_bad_auth(self, request):
-        _, code = self.get_response(request)
-        self.assertEqual(api.FORBIDDEN, code)
 
     @cases([
         {"account": "horns&hoofs", "login": "h&f", "method": "online_score"},
@@ -45,6 +38,27 @@ class TestSuite(unittest.TestCase):
         self.assertEqual(api.INVALID_REQUEST, code)
         self.assertTrue(len(response))
 
+
+class TestAuthSuite(BaseAPITestSuite):
+    @cases([
+        {"account": "horns&hoofs", "login": "h&f", "method": "online_score", "token": "", "arguments": {}},
+        {"account": "horns&hoofs", "login": "h&f", "method": "online_score", "token": "sdd", "arguments": {}},
+        {"account": "horns&hoofs", "login": "admin", "method": "online_score", "token": "", "arguments": {}},
+    ])
+    def test_bad_auth(self, request):
+        _, code = self.get_response(request)
+        self.assertEqual(api.FORBIDDEN, code)
+
+    @cases([
+        {"account": "horns&hoofs", "login": "h&f", "method": "online_score"},
+        {"account": "horns&hoofs", "login": "admin", "method": "online_score"}
+    ])
+    def test_valid_auth(self, request):
+        _, code = self.get_response(request)
+        self.assertIsNot(api.FORBIDDEN, code)
+
+
+class TestScoreSuite(BaseAPITestSuite):
     @cases([
         {},
         {"phone": "79175002040"},
@@ -95,6 +109,8 @@ class TestSuite(unittest.TestCase):
         score = response.get("score")
         self.assertEqual(score, 42)
 
+
+class TestInterestsSuite(BaseAPITestSuite):
     @cases([
         {},
         {"date": "20.07.2017"},
@@ -122,7 +138,7 @@ class TestSuite(unittest.TestCase):
         self.assertEqual(api.OK, code, arguments)
         self.assertEqual(len(arguments["client_ids"]), len(response))
         self.assertTrue(all(v and isinstance(v, list) and all(isinstance(i, basestring) for i in v)
-                        for v in response.values()))
+                            for v in response.values()))
         self.assertEqual(self.context.get("nclients"), len(arguments["client_ids"]))
 
 

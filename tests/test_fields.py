@@ -3,11 +3,12 @@ from api import CharField, ArgumentsField, EmailField, PhoneField, DateField, Bi
 import datetime as dt
 from utils import cases
 
+
 class TestCharField(unittest.TestCase):
 
-    @cases(["Whoops", ""])
+    @cases(["Whoops", "", u"123"])
     def test_valid_value(self, value):
-        self.assertEqual(value, CharField().parse(value))
+        self.assertEqual(value, CharField().parse(value), msg="Value {0} throws error".format(value))
 
     @cases([0, None])
     def test_invalid_value(self, value):
@@ -29,11 +30,11 @@ class TestArgumentsField(unittest.TestCase):
 
 class TestEmailField(unittest.TestCase):
 
-    @cases(['user@example.com'])
+    @cases(['user@example.com', "10lol@mail.sdi", "email@me.ru"])
     def test_valid_email(self, value):
         self.assertEqual(value, EmailField().parse(value))
 
-    @cases(['user', ''])
+    @cases(['user', '', None, 123])
     def test_invalid_email(self, value):
         with self.assertRaises(ValueError):
             EmailField().parse(value)
@@ -53,11 +54,11 @@ class TestPhoneField(unittest.TestCase):
 
 class TestDateField(unittest.TestCase):
 
-    @cases(['21.09.2018'])
+    @cases(['21.09.2018', '02.01.2001'])
     def test_valid_value(self, value):
         self.assertIsInstance(DateField().parse(value), dt.date)
 
-    @cases([21092018])
+    @cases([21092018,'12.03.19290', 123, "ier"])
     def test_invalid_value(self, value):
         with self.assertRaises(ValueError):
             DateField().parse(value)
@@ -97,7 +98,7 @@ class TestClientIDsField(unittest.TestCase):
     def test_valid_value(self, value):
         self.assertEqual(value, ClientIDsField().parse(value))
 
-    @cases([None,"123"])
+    @cases([None, "123"])
     def test_invalid_value(self, value):
         with self.assertRaises(ValueError):
             ClientIDsField().parse(value)
