@@ -1,4 +1,10 @@
 import functools
+import logging
+import sys
+
+logger = logging.getLogger("Cases")
+stream_handler = logging.StreamHandler(sys.stdout)
+logger.addHandler(stream_handler)
 
 
 def cases(cases):
@@ -10,8 +16,7 @@ def cases(cases):
                 try:
                     f(*new_args)
                 except Exception:
-                    print "Got Error with args:"
-                    print new_args
+                    logger.error("Got Error Test with args: {0}".format(new_args))
                     raise
 
         return wrapper
