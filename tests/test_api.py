@@ -28,6 +28,16 @@ class TestRequestSuite(BaseAPITestSuite):
         self.assertEqual(api.INVALID_REQUEST, code)
 
     @cases([
+        {"account": "horns&hoofs", "login": "h&f", "arguments": {"1": "23"}, "method": "123"},
+        {"account": "horns&hoofs", "login": "h&f", "arguments": {"1": "23"}, "method": "ROFL"}
+    ])
+    def test_invalid_method(self, request):
+        self.set_valid_auth(request)
+        response, code = self.get_response(request)
+        self.assertIsNone(response)
+        self.assertEqual(code, api.NOT_FOUND)
+
+    @cases([
         {"account": "horns&hoofs", "login": "h&f", "method": "online_score"},
         {"account": "horns&hoofs", "login": "h&f", "arguments": {}},
         {"account": "horns&hoofs", "method": "online_score", "arguments": {}},
