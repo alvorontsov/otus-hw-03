@@ -30,11 +30,11 @@ class TestArgumentsField(unittest.TestCase):
 
 class TestEmailField(unittest.TestCase):
 
-    @cases(['user@example.com', "10lol@mail.sdi", "email@me.ru"])
+    @cases(['user@example.com', "10lol@mail.sdi", "email@me.ru", "45@43.com"])
     def test_valid_email(self, value):
         self.assertEqual(value, EmailField().parse(value))
 
-    @cases(['user', '', None, 123])
+    @cases(['user', '', None, 123, '@', '@mail.ru', 'user@', '&@$@.#3$', 'user@@mail.ru'])
     def test_invalid_email(self, value):
         with self.assertRaises(ValueError):
             EmailField().parse(value)

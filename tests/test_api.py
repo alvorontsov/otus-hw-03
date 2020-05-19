@@ -38,6 +38,13 @@ class TestRequestSuite(BaseAPITestSuite):
         self.assertEqual(api.INVALID_REQUEST, code)
         self.assertTrue(len(response))
 
+    @cases([{"phone": "79175002040", "email": "stupnikov@otus.ru"}])
+    def test_ok_method_request(self, args):
+        request = {"account": "horns&hoofs", "login": "h&f", "method": "online_score", "arguments": args}
+        self.set_valid_auth(request)
+        response, code = self.get_response(request)
+        self.assertEqual(api.OK, code, args)
+
 
 class TestAuthSuite(BaseAPITestSuite):
     @cases([
@@ -55,7 +62,35 @@ class TestAuthSuite(BaseAPITestSuite):
     ])
     def test_valid_auth(self, request):
         _, code = self.get_response(request)
-        self.assertIsNot(api.FORBIDDEN, code)
+        self.assertEqual(api.INVALID_REQUEST, code)
+
+    @cases([
+        {"account": "horns&hoofs", "login": "h&f", "method": "online_score"},
+        {"account": "horns&hoofs", "login": "admin", "method": "online_score"}
+    ])
+    def test_check_auth_valid(self, request):
+        # Generating request token
+        if request.get("login") == api.ADMIN_LOGIN:
+            request["token"] = hashlib.sha512(datetime.datetime.now().strftime("%Y%m%d%H") + api.ADMIN_SALT).hexdigest()
+        else:
+            msg = request.get("account", "") + request.get("login", "") + api.SALT
+            request["token"] = hashlib.sha512(msg).hexdigest()
+        # testing check_auth
+        request = api.MethodBaseRequest(request)
+        request.is_valid()
+        res = api.check_auth(request)
+        self.assertEqual(res, True)
+
+    @cases([
+        {"account": "horns&hoofs", "login": "h&f", "method": "online_score"},
+        {"account": "horns&hoofs", "login": "admin", "method": "online_score"}
+    ])
+    def test_check_auth_invalid(self, request):
+        # testing with no token
+        request = api.MethodBaseRequest(request)
+        request.is_valid()
+        res = api.check_auth(request)
+        self.assertEqual(res, False)
 
 
 class TestScoreSuite(BaseAPITestSuite):
@@ -100,8 +135,8 @@ class TestScoreSuite(BaseAPITestSuite):
         self.assertTrue(isinstance(score, (int, float)) and score >= 0, arguments)
         self.assertEqual(sorted(self.context["has"]), sorted(arguments.keys()))
 
-    def test_ok_score_admin_request(self):
-        arguments = {"phone": "79175002040", "email": "stupnikov@otus.ru"}
+    @cases([{"phone": "79175002040", "email": "stupnikov@otus.ru"}])
+    def test_ok_score_admin_request(self, arguments):
         request = {"account": "horns&hoofs", "login": "admin", "method": "online_score", "arguments": arguments}
         self.set_valid_auth(request)
         response, code = self.get_response(request)
